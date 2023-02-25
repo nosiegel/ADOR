@@ -12,7 +12,6 @@ import math
 from anki import *
 
 
-
 def open_dayoff_dialog(deck_id=None):
     dialog = DayOffDialog(
         aqt.mw, deck_id=deck_id
@@ -49,13 +48,13 @@ class DayOffDialog(QDialog):
                 deck_name = self.mw.col.decks.nameOrNone(deck_id)
                 if deck_name:
                     self.deckChooser.setDeckName(deck_name)
-
     def accept(self) -> None:
         off = self.ui.DaysOff.value()
         into = self.ui.DaysInto.value()
         algo = self.ui.Alogrithm.currentIndex()
         self.deck_id = self.deckChooser.selectedId()
         self.reschedule(self.deck_id, off, into, algo)
+        self.deckChooser.cleanup()
         return super().accept()
     def reject(self) -> None:
         return super().reject()
@@ -70,7 +69,7 @@ class DayOffDialog(QDialog):
 
         #showInfo(f"{childrenDIDs} ")
 
-        dueToday=mw.col.find_cards(f"prop:due<{0+off}")
+        dueToday=mw.col.find_cards(f"prop:due<{0+off} -is:learn")
         count = 0
         cards:list[Card] = list()
 
@@ -79,10 +78,11 @@ class DayOffDialog(QDialog):
             #there has to be a better way to do this
             if childrenDIDs.find(card.current_deck_id().__str__()) != -1:
                 count+=1
-                card.ivl
                 cards.append(card)
+                
         cards.sort(key=dueSort, reverse=1)
         highestDue: int = cards.__getitem__(0).due
+        
         cards.sort(key=ivlSort, reverse=1)
         
 
